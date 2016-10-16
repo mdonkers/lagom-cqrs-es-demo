@@ -84,6 +84,24 @@
                 <artifactId>${conductr.lib.name}</artifactId>
                 <version>1.4.7</version>
             </dependency>
+
+            <!-- JDBC Lagom / MariaDB dependencies -->
+            <dependency>
+                <groupId>com.lightbend.lagom</groupId>
+                <artifactId>lagom-javadsl-persistence-jdbc_2.11</artifactId>
+                <version>${lagom.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mariadb.jdbc</groupId>
+                <artifactId>mariadb-java-client</artifactId>
+                <version>${mariadb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>${hikari.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -93,5 +111,8 @@
         <lagom.version>1.2.0-RC1</lagom.version>
         <play.version>2.5.4</play.version>
         <conductr.lib.name>lagom10-conductr-bundle-lib_2.11</conductr.lib.name>
+
+        <mariadb.version>1.4.6</mariadb.version>
+        <hikari.version>2.4.5</hikari.version>
     </properties>
 </project>

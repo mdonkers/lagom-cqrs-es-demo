@@ -2,7 +2,6 @@ package nl.codecentric.lagom.helloread.impl;
 
 import java.util.concurrent.CompletableFuture;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

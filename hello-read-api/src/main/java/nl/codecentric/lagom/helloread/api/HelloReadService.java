@@ -15,7 +15,7 @@ import akka.Done;
 /**
  * @author Miel Donkers (miel.donkers@codecentric.nl)
  */
-public interface HelloReadService extends Service{
+public interface HelloReadService extends Service {
 
     ServiceCall<StoreHelloMessage, Done> storeHello(String id);
 

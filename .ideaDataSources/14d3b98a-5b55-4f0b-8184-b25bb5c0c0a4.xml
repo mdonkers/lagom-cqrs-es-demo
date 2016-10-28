@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<dataSource name="MySQL - HELLODB@localhost">
-  <database-model serializer="dbm" rdbms="MYSQL" format-version="2.6">
-    <schema id="1" name="HELLODB">
-      <visible>1</visible>
-    </schema>
-    <schema id="2" name="information_schema"/>
-  </database-model>
-</dataSource>

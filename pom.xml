@@ -9,8 +9,8 @@
     <modules>
         <module>hello-api</module>
         <module>hello-impl</module>
-        <module>stream-api</module>
-        <module>stream-impl</module>
+        <module>hello-read-api</module>
+        <module>hello-read-impl</module>
         <module>integration-tests</module>
         <module>cassandra-config</module>
     </modules>
@@ -111,7 +111,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <lagom.version>1.2.0-RC1</lagom.version>
+        <lagom.version>1.2.0-RC2</lagom.version>
         <play.version>2.5.4</play.version>
         <conductr.lib.name>lagom10-conductr-bundle-lib_2.11</conductr.lib.name>
 

@@ -5,11 +5,11 @@
     <formats>
         <format>zip</format>
     </formats>
-    <baseDirectory>stream-v1</baseDirectory>
+    <baseDirectory>hello-read-v1</baseDirectory>
 
     <dependencySets>
         <dependencySet>
-            <outputDirectory>stream/lib</outputDirectory>
+            <outputDirectory>hello-read/lib</outputDirectory>
             <outputFileNameMapping>${artifact.groupId}-${artifact.artifactId}-${artifact.version}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
         </dependencySet>
     </dependencySets>
@@ -19,12 +19,12 @@
             <outputDirectory></outputDirectory>
             <directory>src/bundle</directory>
             <excludes>
-                <exclude>stream/bin/**</exclude>
+                <exclude>hello-read/bin/**</exclude>
             </excludes>
         </fileSet>
         <fileSet>
-            <outputDirectory>stream/bin</outputDirectory>
-            <directory>src/bundle/stream/bin</directory>
+            <outputDirectory>hello-read/bin</outputDirectory>
+            <directory>src/bundle/hello-read/bin</directory>
             <fileMode>0755</fileMode>
         </fileSet>
     </fileSets>

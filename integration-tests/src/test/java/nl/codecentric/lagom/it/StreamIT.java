@@ -10,7 +10,6 @@ import com.lightbend.lagom.javadsl.client.integration.LagomClientFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import nl.codecentric.lagom.stream.api.StreamService;
 import nl.codecentric.lagom.hello.api.GreetingMessage;
 import nl.codecentric.lagom.hello.api.HelloService;
 
@@ -31,7 +30,6 @@ public class StreamIT {
 
     private static LagomClientFactory clientFactory;
     private static HelloService helloService;
-    private static StreamService streamService;
     private static ActorSystem system;
     private static Materializer mat;
 
@@ -40,7 +38,6 @@ public class StreamIT {
         clientFactory = LagomClientFactory.create("integration-test", StreamIT.class.getClassLoader());
         // One of the clients can use the service locator, the other can use the service gateway, to test them both.
         helloService = clientFactory.createDevClient(HelloService.class, URI.create(SERVICE_LOCATOR_URI));
-        streamService = clientFactory.createDevClient(StreamService.class, URI.create(SERVICE_LOCATOR_URI));
 
         system = ActorSystem.create();
         mat = ActorMaterializer.create(system);
@@ -53,18 +50,6 @@ public class StreamIT {
         await(helloService.useGreeting("bar").invoke(new GreetingMessage("Hi")));
         String answer2 = await(helloService.hello("bar").invoke());
         assertEquals("Hi, bar!", answer2);
-    }
-
-    @Test
-    public void helloStream() throws Exception {
-        // Important to concat our source with a maybe, this ensures the connection doesn't get closed once we've
-        // finished feeding our elements in, and then also to take 3 from the response stream, this ensures our
-        // connection does get closed once we've received the 3 elements.
-        Source<String, ?> response = await(streamService.stream().invoke(
-                Source.from(Arrays.asList("a", "b", "c"))
-                        .concat(Source.maybe())));
-        List<String> messages = await(response.take(3).runWith(Sink.seq(), mat));
-        assertEquals(Arrays.asList("Hello, a!", "Hello, b!", "Hello, c!"), messages);
     }
 
     private <T> T await(CompletionStage<T> future) throws Exception {
@@ -80,8 +65,5 @@ public class StreamIT {
             system.terminate();
         }
     }
-
-
-
 
 }

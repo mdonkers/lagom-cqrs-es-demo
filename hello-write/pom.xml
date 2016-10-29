@@ -1,7 +1,7 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.codecentric.lagom</groupId>
-    <artifactId>lagom-jfall</artifactId>
+    <artifactId>lagom-jfall-write</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
@@ -9,8 +9,6 @@
     <modules>
         <module>hello-api</module>
         <module>hello-impl</module>
-        <module>hello-read-api</module>
-        <module>hello-read-impl</module>
         <module>integration-tests</module>
         <module>cassandra-config</module>
     </modules>
@@ -26,7 +24,16 @@
                 <artifactId>lagom-maven-plugin</artifactId>
                 <version>${lagom.version}</version>
                 <configuration>
-                    <cassandraCleanOnStart>true</cassandraCleanOnStart>
+                  <cassandraCleanOnStart>true</cassandraCleanOnStart>
+                  <!--<externalProjects>-->
+                      <!--<externalProject>-->
+                          <!--<artifact>-->
+                              <!--<groupId>nl.codecentric.lagom</groupId>-->
+                              <!--<artifactId>hello-read-impl</artifactId>-->
+                              <!--<version>1.0.0-SNAPSHOT</version>-->
+                            <!--</artifact>-->
+                        <!--</externalProject>-->
+                    <!--</externalProjects>-->
                 </configuration>
             </plugin>
             <plugin>

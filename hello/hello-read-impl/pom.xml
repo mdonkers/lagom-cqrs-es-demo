@@ -23,10 +23,6 @@
             <groupId>com.lightbend.lagom</groupId>
             <artifactId>lagom-javadsl-server_2.11</artifactId>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.lightbend.lagom</groupId>-->
-            <!--<artifactId>lagom-javadsl-persistence-jdbc_2.11</artifactId>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>com.lightbend.lagom</groupId>
             <artifactId>lagom-logback_2.11</artifactId>

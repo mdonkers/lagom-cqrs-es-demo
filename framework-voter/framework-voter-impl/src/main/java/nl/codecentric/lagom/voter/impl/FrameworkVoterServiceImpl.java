@@ -1,6 +1,6 @@
 package nl.codecentric.lagom.voter.impl;
 
-import java.util.Optional;
+import java.sql.ResultSet;
 
 import javax.inject.Inject;
 
@@ -57,21 +57,15 @@ public class FrameworkVoterServiceImpl implements FrameworkVoterService {
 
     @Override
     public ServiceCall<NotUsed, String> getFrameworkAverages() {
-        return request -> {
-            return jdbcSession.withConnection(connection -> {
-//                ResultSet rs = connection.prepareStatement("SELECT id, title FROM blogsummary")
-//                        .executeQuery();
-//                PSequence<PostSummary> summaries = TreePVector.empty();
-//
-//                while (rs.next()) {
-//                    summaries = summaries.plus(
-//                            new PostSummary(rs.getString("id"), rs.getString("title"))
-//                    );
-//                }
+        return request -> jdbcSession.withConnection(connection -> {
+            ResultSet rsCount = connection.prepareStatement("SELECT COUNT(*) FROM votes").executeQuery();
+            ResultSet rsAverage = connection.prepareStatement("SELECT AVG(score) FROM votes").executeQuery();
 
-                return "Number of votes: 5";
-            });
-        };
+            if (rsCount.next() && rsAverage.next()) {
+                return String.format("# %s votes resulted in average; %s", rsCount.getString(1), rsAverage.getString(1));
+            } else {
+                return "No votes yet";
+            }
+        });
     }
-
 }

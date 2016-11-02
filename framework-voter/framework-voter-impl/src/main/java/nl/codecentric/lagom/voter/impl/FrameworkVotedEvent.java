@@ -13,9 +13,19 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.lightbend.lagom.javadsl.persistence.AggregateEvent;
+import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;
+import com.lightbend.lagom.javadsl.persistence.AggregateEventTagger;
 import com.lightbend.lagom.serialization.Jsonable;
 
-public interface FrameworkVotedEvent extends Jsonable {
+public interface FrameworkVotedEvent extends Jsonable, AggregateEvent<FrameworkVotedEvent> {
+
+    AggregateEventTag<FrameworkVotedEvent> VOTED_EVENT_TAG = AggregateEventTag.of(FrameworkVotedEvent.class);
+
+    @Override
+    default AggregateEventTag<FrameworkVotedEvent> aggregateTag() {
+        return VOTED_EVENT_TAG;
+    }
 
     /**
      * An event that represents an added vote.

@@ -54,14 +54,13 @@ public class FrameworkVoterServiceImpl implements FrameworkVoterService {
         };
     }
 
-
     @Override
     public ServiceCall<NotUsed, String> getFrameworkAverages() {
         return request -> jdbcSession.withConnection(connection -> {
             ResultSet rsCount = connection.prepareStatement("SELECT COUNT(*) FROM votes").executeQuery();
             ResultSet rsAverage = connection.prepareStatement("SELECT AVG(score) FROM votes").executeQuery();
 
-            if (rsCount.next() && rsAverage.next()) {
+            if (rsCount.next() && rsAverage.next() && rsCount.getInt(1) > 0) {
                 return String.format("# %s votes resulted in average; %s", rsCount.getString(1), rsAverage.getString(1));
             } else {
                 return "No votes yet";

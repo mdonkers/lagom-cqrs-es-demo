@@ -30,7 +30,7 @@ public class FrameworkVoterServiceImpl implements FrameworkVoterService {
     @Inject
     public FrameworkVoterServiceImpl(PersistentEntityRegistry persistentEntityRegistry, JdbcSession jdbcSession) {
         this.persistentEntityRegistry = persistentEntityRegistry;
-        persistentEntityRegistry.register(GreetingEntity.class);
+        persistentEntityRegistry.register(FrameworkVotingEntity.class);
         this.jdbcSession = jdbcSession;
     }
 
@@ -38,17 +38,17 @@ public class FrameworkVoterServiceImpl implements FrameworkVoterService {
     public ServiceCall<StoreFrameworkVoteMessage, Done> storeFrameworkVote() {
         return request -> {
             log.info("===> Store Framework Vote Request {}", request.toString());
-            PersistentEntityRef<GreetingCommand> ref = persistentEntityRegistry.refFor(GreetingEntity.class, request.framework);
-            return ref.ask(new GreetingCommand.UseGreetingMessage(request.comment));
+            PersistentEntityRef<FrameworkVotingCommand> ref = persistentEntityRegistry.refFor(FrameworkVotingEntity.class, request.framework);
+            return ref.ask(new FrameworkVotingCommand.AddFrameworkVote(request.score, request.comment));
         };
     }
 
     @Override
     public ServiceCall<NotUsed, String> getFrameworkAverage(String framework) {
         return request -> {
-            PersistentEntityRef<GreetingCommand> ref = persistentEntityRegistry.refFor(GreetingEntity.class, framework);
-            // Ask the entity the Hello command.
-            return ref.ask(new GreetingCommand.Greeting(framework, Optional.empty()));
+            PersistentEntityRef<FrameworkVotingCommand> ref = persistentEntityRegistry.refFor(FrameworkVotingEntity.class, framework);
+            // Ask the entity the Framework Voting command (current state of votes).
+            return ref.ask(new FrameworkVotingCommand.FrameworkVoting(framework));
         };
     }
 

@@ -102,7 +102,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <lagom.version>1.2.0-RC2</lagom.version>
+        <lagom.version>1.2.1</lagom.version>
         <play.version>2.5.4</play.version>
         <conductr.lib.name>lagom10-conductr-bundle-lib_2.11</conductr.lib.name>
 

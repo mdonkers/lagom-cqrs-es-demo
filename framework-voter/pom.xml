@@ -9,6 +9,7 @@
     <modules>
         <module>framework-voter-api</module>
         <module>framework-voter-impl</module>
+        <module>framework-voter-database</module>
     </modules>
 
     <build>
@@ -108,5 +109,7 @@
 
         <mariadb.version>1.4.6</mariadb.version>
         <hikari.version>2.4.5</hikari.version>
+
+        <flyway-maven-plugin.version>4.0.3</flyway-maven-plugin.version>
     </properties>
 </project>

@@ -5,7 +5,8 @@ import cats.implicits._
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.persistence.jdbc.{JdbcReadSide, JdbcSession}
 import com.lightbend.lagom.scaladsl.persistence.{PersistentEntityRegistry, ReadSide}
-import nl.codecentric.inspection.api.InspectionService
+import nl.codecentric.inspection.api.{InspectionForShipMessage, InspectionService}
+import org.joda.time.DateTime
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,35 +37,25 @@ class InspectionServiceImpl(persistentEntityRegistry: PersistentEntityRegistry, 
     ref.ask(FrameworkVoting())
   }
 
-  override def getFrameworkAverages = ServiceCall { _ =>
-    val countFuture: Future[Option[String]] = jdbcSession.withConnection { connection =>
-      tryWith(connection.prepareStatement("SELECT COUNT(*) FROM votes")) { psCount =>
-        tryWith(psCount.executeQuery()) { rsCount =>
-          if (rsCount.next() && rsCount.getInt(1) > 0)
-            Some(rsCount.getString(1))
-          else
-            None
+  override def getInspectionsForShip(shipName: String) = ServiceCall { _ =>
+    jdbcSession.withConnection { connection =>
+      tryWith(connection.prepareStatement("SELECT * FROM inspections_with_remarks_vw WHERE ship_name COLLATE UTF8_UNICODE_CI LIKE ?")) { psInspections =>
+        psInspections.setString(1, "%" + shipName + "%")
+        tryWith(psInspections.executeQuery()) { rsInspections =>
+          var resultSet: Set[InspectionForShipMessage] = Set.empty
+          while (rsInspections.next()) {
+            resultSet = resultSet + InspectionForShipMessage(
+              rsInspections.getString(1),
+              Option(rsInspections.getString(2)),
+              rsInspections.getString(3),
+              new DateTime(rsInspections.getTimestamp(4).getTime),
+              Option(rsInspections.getString(5)),
+              Option(rsInspections.getString(6)))
+          }
+          resultSet
         }
       }
     }
-
-    val avgFuture: Future[Option[String]] = jdbcSession.withConnection { connection =>
-      tryWith(connection.prepareStatement("SELECT AVG(score) FROM votes")) { psAvg =>
-        tryWith(psAvg.executeQuery()) { rsAvg =>
-          if (rsAvg.next())
-            Some(rsAvg.getString(1))
-          else
-            None
-        }
-      }
-    }
-
-    val combinedOT: OptionT[Future, String] = for {
-      count <- OptionT(countFuture)
-      avg <- OptionT(avgFuture)
-    } yield s"# $count votes resulted in average; $avg"
-
-    combinedOT.getOrElse("No votes yet")
   }
 
 }

@@ -1,10 +1,11 @@
 package nl.codecentric.inspection.impl
 
-import java.sql.Connection
+import java.sql.{Connection, Timestamp}
 
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.jdbc.JdbcReadSide
 import com.lightbend.lagom.scaladsl.persistence.jdbc.JdbcSession.tryWith
+import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext
 
@@ -12,20 +13,22 @@ import scala.concurrent.ExecutionContext
 class InspectionEventProcessor(readSide: JdbcReadSide)(implicit ec: ExecutionContext)
   extends ReadSideProcessor[InspectionEvent] {
 
-  private def processVoteAdded(connection: Connection,
-                               eventElement: EventStreamElement[FrameworkVotedAddition]): Unit = {
+  private def processInspectionAdded(connection: Connection,
+                               eventElement: EventStreamElement[InspectionAddedEvent]): Unit = {
     tryWith(connection.prepareStatement(
-      "INSERT INTO votes (framework, score, comment) VALUES (?, ?, ?)")) { statement =>
-      statement.setString(1, eventElement.event.framework)
-      statement.setInt(2, eventElement.event.score)
-      statement.setString(3, eventElement.event.comment.getOrElse(""))
+      "INSERT INTO inspections (ucrn, dt_inspected, employee, remarks) VALUES (?, ?, ?, ?)")) { statement =>
+      statement.setString(1, eventElement.event.ucrn)
+      statement.setTimestamp(2, eventElement.event.dtInspection.map(dt =>
+        new Timestamp(dt.getMillis)).getOrElse(new Timestamp(DateTime.now().getMillis)))
+      statement.setString(3, eventElement.event.employee.orNull)
+      statement.setString(4, eventElement.event.remarks.orNull)
       statement.execute()
     }
   }
 
   override def buildHandler(): ReadSideProcessor.ReadSideHandler[InspectionEvent] = {
-    val builder = readSide.builder[InspectionEvent]("votesoffset")
-    builder.setEventHandler(processVoteAdded)
+    val builder = readSide.builder[InspectionEvent]("inspectionsoffset")
+    builder.setEventHandler(processInspectionAdded)
     builder.build()
   }
 

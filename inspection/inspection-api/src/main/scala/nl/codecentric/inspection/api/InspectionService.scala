@@ -11,34 +11,33 @@ trait InspectionService extends Service {
 
   def getInspectionsForShip(shipName: String): ServiceCall[NotUsed, Set[InspectionForShipMessage]]
 
-  def storeFrameworkVote: ServiceCall[StoreFrameworkVoteMessage, Done]
+  def getAllInspections: ServiceCall[NotUsed, Set[InspectionMessage]]
 
-  def getFrameworkVotes(framework: String): ServiceCall[NotUsed, String]
+  def getInspectionsByEmployee(employee: String): ServiceCall[NotUsed, Set[InspectionMessage]]
+
+  def addInspection: ServiceCall[InspectionMessage, Done]
 
   override final def descriptor = {
     import Service._
     named("inspection")
       .withCalls(
         pathCall("/api/inspection/for-ship/:shipName", getInspectionsForShip _),
-        restCall(Method.GET, "/api/framework-vote/:framework", getFrameworkVotes _),
-        restCall(Method.POST, "/api/framework-vote", storeFrameworkVote _)
+        pathCall("/api/inspection", getAllInspections _),
+        restCall(Method.GET, "/api/inspection/by-employee/:employee", getInspectionsByEmployee _),
+        restCall(Method.POST, "/api/inspection", addInspection _)
       )
       .withAutoAcl(true)
       .withCircuitBreaker(PerNode)
   }
 }
 
-case class StoreFrameworkVoteMessage(framework: String,
-                                     score: Int,
-                                     comment: Option[String] = None)
+case class InspectionMessage(ucrn: String,
+                             dtInspection: Option[DateTime] = None,
+                             employee: Option[String] = None,
+                             remarks: Option[String] = None)
 
-object StoreFrameworkVoteMessage {
-
-  /**
-    * Format for converting messages to and from JSON.
-    * This will be picked up by a Lagom implicit conversion from Play's JSON format to Lagom's message serializer.
-    */
-  implicit val format: Format[StoreFrameworkVoteMessage] = Json.format[StoreFrameworkVoteMessage]
+object InspectionMessage {
+  implicit val format: Format[InspectionMessage] = Json.format[InspectionMessage]
 }
 
 case class InspectionForShipMessage(shipName: String,

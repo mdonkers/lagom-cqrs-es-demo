@@ -1,17 +1,11 @@
 package nl.codecentric.inspection.impl
 
 import akka.Done
-import com.lightbend.lagom.scaladsl.persistence.{
-  AggregateEvent,
-  AggregateEventTag,
-  PersistentEntity
-}
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
-import com.lightbend.lagom.scaladsl.playjson.{
-  JsonSerializer,
-  JsonSerializerRegistry
-}
-import play.api.libs.json.{Format, Json, Reads, Writes}
+import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag, PersistentEntity}
+import com.lightbend.lagom.scaladsl.playjson.{JsonSerializer, JsonSerializerRegistry}
+import org.joda.time.DateTime
+import play.api.libs.json.{Format, Json}
 
 import scala.collection.immutable.Seq
 
@@ -32,35 +26,33 @@ class InspectionEntity extends PersistentEntity {
     * is a function of the current state to a set of actions.
     */
   override def behavior: Behavior = {
-    case InspectionState(votes) =>
+    case InspectionState(inspections) =>
       Actions()
-        .onCommand[AddFrameworkVote, Done] {
+        .onCommand[AddInspectionCommand, Done] {
 
-          // Command handler for the UseGreetingMessage command
-          case (AddFrameworkVote(score, comment), ctx, state) =>
-            // In response to this command, we want to first persist it as a
-            // GreetingMessageChanged event
+          case (AddInspectionCommand(ucrn, dtInspection, employee, remarks), ctx, state) =>
+            // In response to this command, we want to first persist it as an InspectionAddedEvent
             ctx.thenPersist(
-              FrameworkVotedAddition(entityId, score, comment)
+              InspectionAddedEvent(ucrn, dtInspection, employee, remarks)
             ) { _ =>
               // Then once the event is successfully persisted, we respond with done.
               ctx.reply(Done)
             }
 
         }
-        .onReadOnlyCommand[FrameworkVoting, String] {
-
-          case (FrameworkVoting(), ctx, state) =>
-            ctx.reply(s"${state.votes.mkString(" | ")}")
-
+        .onReadOnlyCommand[RequestAllInspections, Set[Inspection]] {
+          case (RequestAllInspections(), ctx, state) =>
+            ctx.reply(state.inspections.toSet)
+        }
+        .onReadOnlyCommand[RequestInspectionsByEmployeeCommand, Set[Inspection]] {
+          case (RequestInspectionsByEmployeeCommand(employee), ctx, state) =>
+            ctx.reply(state.inspections.filter(i => employee.equalsIgnoreCase(i.employee.orNull)).toSet)
         }
         .onEvent {
-
-          // Event handler for the GreetingMessageChanged event
-          case (FrameworkVotedAddition(name, score, comment), state) =>
-            // We simply update the current state to use the greeting message from
-            // the event.
-            InspectionState(Vote(score, comment) :: state.votes)
+          // Event handler for the InspectionAddedEvent event
+          case (InspectionAddedEvent(ucrn, dtInspection, employee, remarks), state) =>
+            // We simply update the current state to add the new inspection
+            InspectionState(Inspection(ucrn, dtInspection, employee, remarks) :: state.inspections)
         }
   }
 }
@@ -68,17 +60,20 @@ class InspectionEntity extends PersistentEntity {
 /**
   * The current state held by the persistent entity.
   */
-case class InspectionState(votes: List[Vote])
+case class InspectionState(inspections: List[Inspection])
 
 object InspectionState {
 
   implicit val format: Format[InspectionState] = Json.format
 }
 
-case class Vote(score: Int, comment: Option[String] = None)
+case class Inspection(ucrn: String,
+                      dtInspection: Option[DateTime] = None,
+                      employee: Option[String] = None,
+                      remarks: Option[String] = None)
 
-object Vote {
-  implicit val format: Format[Vote] = Json.format
+object Inspection {
+  implicit val format: Format[Inspection] = Json.format
 }
 
 /**
@@ -93,36 +88,42 @@ sealed trait InspectionEvent extends AggregateEvent[InspectionEvent] {
     InspectionEvent.InspectionEventTag
 }
 
-case class FrameworkVotedAddition(framework: String,
-                                  score: Int,
-                                  comment: Option[String] = None)
+case class InspectionAddedEvent(ucrn: String,
+                                dtInspection: Option[DateTime] = None,
+                                employee: Option[String] = None,
+                                remarks: Option[String] = None)
     extends InspectionEvent
 
-object FrameworkVotedAddition {
-  implicit val format: Format[FrameworkVotedAddition] = Json.format
+object InspectionAddedEvent {
+  implicit val format: Format[InspectionAddedEvent] = Json.format
 }
 
 /**
-  * This interface defines all the commands that the HelloWorld entity supports.
+  * This interface defines all the commands that the Inspection entity supports.
   */
 sealed trait InspectionCommand[R] extends ReplyType[R]
 
-case class AddFrameworkVote(score: Int, comment: Option[String] = None)
-    extends InspectionCommand[Done]
+case class AddInspectionCommand(ucrn: String,
+                                dtInspection: Option[DateTime] = None,
+                                employee: Option[String] = None,
+                                remarks: Option[String] = None)
+  extends InspectionCommand[Done]
 
-object AddFrameworkVote {
-
-  implicit val format: Format[AddFrameworkVote] = Json.format
+object AddInspectionCommand {
+  implicit val format: Format[AddInspectionCommand] = Json.format
 }
 
-case class FrameworkVoting() extends InspectionCommand[String]
+case class RequestAllInspections()
+  extends InspectionCommand[Set[Inspection]]
 
-object FrameworkVoting {
+object RequestAllInspections {
+}
 
-//  implicit val reader: Reads[FrameworkVoting] = ("FrameworkVoting").read[FrameworkVoting]
-//  implicit val writer = Writes[FrameworkVoting}{
-//    Json.toJson()(Foo.fmt)
-//}
+case class RequestInspectionsByEmployeeCommand(employee: String)
+  extends InspectionCommand[Set[Inspection]]
+
+object RequestInspectionsByEmployeeCommand {
+  implicit val format: Format[RequestInspectionsByEmployeeCommand] = Json.format
 }
 
 /**
@@ -136,9 +137,10 @@ object FrameworkVoting {
   */
 object InspectionSerializerRegistry extends JsonSerializerRegistry {
   override def serializers: Seq[JsonSerializer[_]] = Seq(
-    JsonSerializer[FrameworkVotedAddition],
-    JsonSerializer[AddFrameworkVote],
-    JsonSerializer[Vote],
+    JsonSerializer[InspectionAddedEvent],
+    JsonSerializer[AddInspectionCommand],
+    JsonSerializer[RequestInspectionsByEmployeeCommand],
+    JsonSerializer[Inspection],
     JsonSerializer[InspectionState]
   )
 }

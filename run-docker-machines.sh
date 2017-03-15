@@ -12,4 +12,5 @@ del_stopped(){
 ## MariaDB
 del_stopped akka-mariadb
 docker run --name akka-mariadb -v /tmp/docker/mariadb:/var/lib/mysql -p 3306:3306 -e MYSQL_DATABASE=FRAMEWORKDB \
-  -e MYSQL_USER=COFFEE -e MYSQL_PASSWORD=secret-coffee-pw -e MYSQL_ROOT_PASSWORD=secret-root-pw -d mariadb:latest
+  -e MYSQL_USER=COFFEE -e MYSQL_PASSWORD=secret-coffee-pw -e MYSQL_ROOT_PASSWORD=secret-root-pw -d mariadb:latest \
+  --character-set-server=utf8 --collation-server=utf8_unicode_ci
